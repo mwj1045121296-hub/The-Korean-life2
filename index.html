@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留学生生存模拟器 - 유학생 생존 시뮬레이터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4ecca3;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .game-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .game-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 로그인 영역 */
+        #loginScreen {
+            text-align: center;
+            padding: 50px;
+        }
+
+        #loginScreen h2 {
+            color: #4ecca3;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        #playerName {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #4ecca3;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4ecca3 0%, #3ba786 100%);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(78, 204, 163, 0.4);
+        }
+
+        .btn-choice {
+            width: 100%;
+            padding: 20px;
+            margin: 10px 0;
+            background: rgba(78, 204, 163, 0.2);
+            color: #e0e0e0;
+            text-align: left;
+            border: 2px solid #4ecca3;
+        }
+
+        .btn-choice:hover {
+            background: rgba(78, 204, 163, 0.3);
+            transform: translateX(5px);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(244, 107, 69, 0.4);
+        }
+
+        /* 상태 지표 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4ecca3;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #4ecca3;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecca3 0%, #3ba786 100%);
+            transition: width 0.5s ease;
+        }
+
+        /* 상황 카드 */
+        .scenario-card {
+            margin-bottom: 20px;
+        }
+
+        .scenario-title {
+            font-size: 1.5em;
+            color: #4ecca3;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .scenario-desc {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-info {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* 결과 표시 */
+        .result-box {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4ecca3;
+            animation: slideIn 0.5s ease;
+        }
+
+        .result-success {
+            background: rgba(78, 204, 163, 0.2);
+            border-left-color: #4ecca3;
+        }
+
+        .result-fail {
+            background: rgba(244, 107, 69, 0.2);
+            border-left-color: #f46b45;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 최종 결과 */
+        .final-stats {
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #4ecca3;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(78, 204, 163, 0.5);
+        }
+
+        .stats-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .stats-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-table td:first-child {
+            color: #4ecca3;
+            font-weight: bold;
+        }
+
+        /* 순위표 */
+        .leaderboard {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .leaderboard h3 {
+            color: #4ecca3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            background: rgba(78, 204, 163, 0.2);
+            padding: 10px;
+            text-align: left;
+            color: #4ecca3;
+            font-size: 0.9em;
+        }
+
+        .leaderboard-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9em;
+        }
+
+        .rank-1 { color: #FFD700; font-weight: bold; }
+        .rank-2 { color: #C0C0C0; font-weight: bold; }
+        .rank-3 { color: #CD7F32; font-weight: bold; }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 진행 표시 */
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecca3 0%, #3ba786 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4ecca3;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>留学生生存模拟器 – 유학생 생존 시뮬레이터</h1>
+
+        <!-- 로그인 화면 -->
+        <div id="loginScreen" class="card">
+            <h2>欢迎来到留学生生存模拟器<br>유학생 생존 시뮬레이터에 오신 것을 환영합니다</h2>
+            <p style="margin-bottom: 20px;">请输入您的昵称 / 닉네임을 입력하세요</p>
+            <input type="text" id="playerName" placeholder="你的昵称 / 닉네임" maxlength="20">
+            <br>
+            <button class="btn btn-primary" onclick="startGame()">开始游戏 / 게임 시작</button>
+        </div>
+
+        <!-- 게임 화면 -->
+        <div id="gameScreen" class="hidden">
+            <div class="game-wrapper">
+                <!-- 메인 게임 영역 -->
+                <div>
+                    <!-- 진행 상황 -->
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar">0 / 10</div>
+                    </div>
+
+                    <!-- 현재 상태 지표 -->
+                    <div class="card">
+                        <h3 style="color: #4ecca3; margin-bottom: 15px;">当前状态 / 현재 상태</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">幸福度 / 행복도</div>
+                                <div class="stat-value" id="happinessValue">0</div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" id="happinessBar" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">健康 / 건강</div>
+                                <div class="stat-value" id="healthValue">0</div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" id="healthBar" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">学业 / 학업</div>
+                                <div class="stat-value" id="studyValue">0</div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" id="studyBar" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">财政 / 재정</div>
+                                <div class="stat-value" id="moneyValue">0</div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" id="moneyBar" style="width: 50%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 상황 카드 -->
+                    <div class="card scenario-card" id="scenarioCard">
+                        <div class="scenario-title" id="scenarioTitle"></div>
+                        <div class="scenario-desc" id="scenarioDesc"></div>
+                        <div class="choices" id="choices"></div>
+                        <div id="resultBox"></div>
+                        <button class="btn btn-next hidden" id="nextBtn" onclick="nextRound()">下一步 / 다음으로</button>
+                    </div>
+                </div>
+
+                <!-- 순위표 영역 -->
+                <div class="card leaderboard">
+                    <h3>全球留学生生存指数排行榜<br>전세계 유학생 생존 지수 랭킹</h3>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>排名<br>순위</th>
+                                <th>昵称<br>닉네임</th>
+                                <th>分数<br>점수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <tr><td colspan="3" style="text-align: center;">加载中... / 로딩 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 결과 화면 -->
+        <div id="resultScreen" class="hidden">
+            <div class="card final-stats">
+                <h2 style="color: #4ecca3; margin-bottom: 30px;">本局统计结果 / 이번 판 통계 결과</h2>
+                
+                <div class="final-score" id="finalScoreDisplay">0</div>
+                <p style="font-size: 1.3em; margin-bottom: 30px;">你的最终留学生存指数<br>당신의 최종 유학생 생존 지수</p>
+
+                <table class="stats-table">
+                    <tr>
+                        <td>成功次数 / 성공 횟수</td>
+                        <td id="successCount">0</td>
+                    </tr>
+                    <tr>
+                        <td>总尝试次数 / 총 시도 횟수</td>
+                        <td id="trialCount">0</td>
+                    </tr>
+                    <tr>
+                        <td>理论期望成功次数 E(X) / 이론적 기대 성공 횟수</td>
+                        <td id="expectedValue">0</td>
+                    </tr>
+                    <tr>
+                        <td>实际成功率 / 실제 성공률</td>
+                        <td id="actualRate">0%</td>
+                    </tr>
+                    <tr>
+                        <td>高风险选择比例 / 고위험 선택 비율</td>
+                        <td id="highRiskRate">0%</td>
+                    </tr>
+                </table>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="color: #4ecca3; margin-bottom: 15px;">最终状态 / 최종 상태</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">幸福度 / 행복도</div>
+                            <div class="stat-value" id="finalHappiness">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">健康 / 건강</div>
+                            <div class="stat-value" id="finalHealth">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">学业 / 학업</div>
+                            <div class="stat-value" id="finalStudy">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">财政 / 재정</div>
+                            <div class="stat-value" id="finalMoney">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="restartGame()" style="margin-top: 30px;">再玩一次 / 다시 하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ============================================
+        // Firebase 초기화
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase 앱 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ============================================
+        // 게임 시나리오 데이터 (중국어 + 한국어)
+        // ============================================
+        const scenarios = [
+            {
+                id: 1,
+                titleCn: "找房子",
+                titleKo: "집 구하기",
+                descriptionCn: "刚到韩国，你需要找个地方住。便宜的房子可能条件差，贵的房子会增加经济压力。",
+                descriptionKo: "한국에 막 도착해서 집을 구해야 합니다. 싼 집은 조건이 안 좋을 수 있고, 비싼 집은 경제적 부담이 됩니다.",
+                options: [
+                    {
+                        textCn: "A. 找便宜但可能有蟑螂的房子",
+                        textKo: "A. 싼 집이지만 바퀴벌레가 있을 수 있는 집",
+                        successProbability: 0.5,
+                        impact: { happiness: -5, health: -10, study: 5, money: 20 },
+                        impactOnFail: { happiness: -20, health: -25, study: -10, money: 15 },
+                        successCn: "成功！虽然便宜但还算干净",
+                        successKo: "성공! 저렴하지만 깨끗한 편입니다",
+                        failCn: "失败！房子有很多蟑螂，影响心情和健康",
+                        failKo: "실패! 집에 바퀴벌레가 많아서 기분과 건강에 악영향"
+                    },
+                    {
+                        textCn: "B. 租贵一点但更干净的房子",
+                        textKo: "B. 조금 비싸지만 더 깨끗한 집",
+                        successProbability: 0.8,
+                        impact: { happiness: 15, health: 10, study: 10, money: -15 },
+                        impactOnFail: { happiness: 5, health: 5, study: 0, money: -20 },
+                        successCn: "成功！房子很舒适，心情很好",
+                        successKo: "성공! 집이 편안하고 기분이 좋습니다",
+                        failCn: "还行，但经济压力有点大",
+                        failKo: "괜찮지만 경제적 부담이 좀 있습니다"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                titleCn: "兼职工作",
+                titleKo: "아르바이트",
+                descriptionCn: "为了赚取生活费，你需要找兼职。高薪工作时间长，可能影响学习。",
+                descriptionKo: "생활비를 벌기 위해 아르바이트가 필요합니다. 고액 알바는 시간이 많이 걸려 학업에 영향을 줄 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 选择高薪但时间长的工作",
+                        textKo: "A. 고액이지만 시간이 긴 알바",
+                        successProbability: 0.6,
+                        impact: { happiness: -10, health: -15, study: -20, money: 35 },
+                        impactOnFail: { happiness: -20, health: -25, study: -30, money: 20 },
+                        successCn: "成功！赚到不少钱，但确实很累",
+                        successKo: "성공! 돈을 많이 벌었지만 정말 피곤합니다",
+                        failCn: "失败！太累了，学习和健康都受影响",
+                        failKo: "실패! 너무 피곤해서 학업과 건강 모두 영향을 받았습니다"
+                    },
+                    {
+                        textCn: "B. 选择轻松但工资一般的工作",
+                        textKo: "B. 편하지만 급여가 보통인 알바",
+                        successProbability: 0.85,
+                        impact: { happiness: 10, health: 5, study: 5, money: 15 },
+                        impactOnFail: { happiness: 0, health: 0, study: -5, money: 10 },
+                        successCn: "成功！工作轻松，还能兼顾学习",
+                        successKo: "성공! 일이 편하고 학업도 병행할 수 있습니다",
+                        failCn: "还可以，但赚的钱不太够",
+                        failKo: "괜찮지만 번 돈이 충분하지 않습니다"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                titleCn: "期中考试",
+                titleKo: "중간고사",
+                descriptionCn: "期中考试快到了。你可以熬夜突击复习，或者保持正常作息稳步准备。",
+                descriptionKo: "중간고사가 다가옵니다. 밤을 새워 벼락치기를 하거나, 규칙적인 생활로 차근차근 준비할 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 连续熬夜突击复习",
+                        textKo: "A. 며칠 밤을 새워 벼락치기",
+                        successProbability: 0.55,
+                        impact: { happiness: -15, health: -25, study: 25, money: 0 },
+                        impactOnFail: { happiness: -25, health: -35, study: 5, money: 0 },
+                        successCn: "成功！考试成绩不错，但身体很累",
+                        successKo: "성공! 시험 성적은 좋지만 몸이 매우 피곤합니다",
+                        failCn: "失败！熬夜效果不好，身体也垮了",
+                        failKo: "실패! 밤샘 효과가 별로고 건강도 나빠졌습니다"
+                    },
+                    {
+                        textCn: "B. 保持正常作息，稳步复习",
+                        textKo: "B. 규칙적인 생활을 유지하며 차근차근 복습",
+                        successProbability: 0.75,
+                        impact: { happiness: 10, health: 10, study: 20, money: 0 },
+                        impactOnFail: { happiness: 0, health: 5, study: 10, money: 0 },
+                        successCn: "成功！成绩不错，身体也健康",
+                        successKo: "성공! 성적도 좋고 건강도 유지됩니다",
+                        failCn: "还行，虽然成绩一般但身体健康",
+                        failKo: "괜찮습니다. 성적은 보통이지만 건강합니다"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                titleCn: "社交活动",
+                titleKo: "사교 활동",
+                descriptionCn: "朋友邀请你参加周末聚会。去的话会花钱花时间，但能交到朋友。",
+                descriptionKo: "친구가 주말 모임에 초대했습니다. 가면 돈과 시간이 들지만 친구를 사귈 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 经常参加聚会，积极社交",
+                        textKo: "A. 자주 모임에 참여하며 적극적으로 사교",
+                        successProbability: 0.7,
+                        impact: { happiness: 25, health: 0, study: -10, money: -15 },
+                        impactOnFail: { happiness: 5, health: -5, study: -15, money: -20 },
+                        successCn: "成功！交到很多朋友，心情愉快",
+                        successKo: "성공! 많은 친구를 사귀고 기분이 좋습니다",
+                        failCn: "玩得太疯，花钱多还影响学习",
+                        failKo: "너무 놀아서 돈도 많이 쓰고 학업도 영향받았습니다"
+                    },
+                    {
+                        textCn: "B. 偶尔参加，专注学习",
+                        textKo: "B. 가끔만 참여하고 학업에 집중",
+                        successProbability: 0.8,
+                        impact: { happiness: 10, health: 5, study: 15, money: -5 },
+                        impactOnFail: { happiness: 5, health: 0, study: 10, money: 0 },
+                        successCn: "成功！平衡了社交和学习",
+                        successKo: "성공! 사교와 학업의 균형을 맞췄습니다",
+                        failCn: "有点孤独，但学习还不错",
+                        failKo: "약간 외롭지만 학업은 괜찮습니다"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                titleCn: "饮食选择",
+                titleKo: "식사 선택",
+                descriptionCn: "每天吃什么是个问题。外卖方便但不健康，自己做饭省钱但费时间。",
+                descriptionKo: "매일 무엇을 먹을지가 문제입니다. 배달은 편하지만 건강하지 않고, 직접 요리하면 돈은 아끼지만 시간이 듭니다.",
+                options: [
+                    {
+                        textCn: "A. 经常点外卖",
+                        textKo: "A. 자주 배달 주문",
+                        successProbability: 0.5,
+                        impact: { happiness: 10, health: -15, study: 5, money: -20 },
+                        impactOnFail: { happiness: 0, health: -25, study: 0, money: -25 },
+                        successCn: "方便是方便，但健康下降",
+                        successKo: "편하긴 하지만 건강이 나빠집니다",
+                        failCn: "失败！吃坏肚子，又贵又不健康",
+                        failKo: "실패! 배탈이 나고 비싸고 건강하지도 않습니다"
+                    },
+                    {
+                        textCn: "B. 自己做饭",
+                        textKo: "B. 직접 요리",
+                        successProbability: 0.75,
+                        impact: { happiness: 15, health: 20, study: -5, money: 15 },
+                        impactOnFail: { happiness: 5, health: 10, study: -10, money: 10 },
+                        successCn: "成功！做饭很有成就感，省钱又健康",
+                        successKo: "성공! 요리에 보람을 느끼고 돈도 아끼고 건강합니다",
+                        failCn: "做饭花时间，但还算健康",
+                        failKo: "요리에 시간이 걸리지만 건강합니다"
+                    }
+                ]
+            },
+            {
+                id: 6,
+                titleCn: "语言学习",
+                titleKo: "언어 학습",
+                descriptionCn: "韩语不够好会影响生活。你可以报昂贵的培训班，或者自学。",
+                descriptionKo: "한국어가 부족하면 생활에 영향을 줍니다. 비싼 학원에 등록하거나 독학할 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 报名昂贵的语言培训班",
+                        textKo: "A. 비싼 어학원 등록",
+                        successProbability: 0.8,
+                        impact: { happiness: 10, health: 0, study: 20, money: -30 },
+                        impactOnFail: { happiness: -5, health: 0, study: 10, money: -35 },
+                        successCn: "成功！韩语进步很快",
+                        successKo: "성공! 한국어 실력이 빠르게 향상됩니다",
+                        failCn: "效果一般，还花了很多钱",
+                        failKo: "효과는 보통인데 돈을 많이 썼습니다"
+                    },
+                    {
+                        textCn: "B. 自己学习，多和韩国人交流",
+                        textKo: "B. 독학하고 한국인과 많이 대화",
+                        successProbability: 0.6,
+                        impact: { happiness: 15, health: 5, study: 15, money: 5 },
+                        impactOnFail: { happiness: 0, health: 0, study: 5, money: 0 },
+                        successCn: "成功！交到韩国朋友，语言也进步了",
+                        successKo: "성공! 한국 친구를 사귀고 언어도 늘었습니다",
+                        failCn: "进步慢，但省了钱",
+                        failKo: "진보가 느리지만 돈은 아꼈습니다"
+                    }
+                ]
+            },
+            {
+                id: 7,
+                titleCn: "生病了",
+                titleKo: "아플 때",
+                descriptionCn: "你感冒了。去医院很贵，但在家硬撑可能更严重。",
+                descriptionKo: "감기에 걸렸습니다. 병원은 비싸지만, 집에서 버티면 더 악화될 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 在家休息，自己买药",
+                        textKo: "A. 집에서 쉬며 스스로 약 구매",
+                        successProbability: 0.55,
+                        impact: { happiness: -10, health: 10, study: -10, money: 10 },
+                        impactOnFail: { happiness: -20, health: -20, study: -20, money: 5 },
+                        successCn: "成功！好好休息就康复了",
+                        successKo: "성공! 잘 쉬어서 회복되었습니다",
+                        failCn: "失败！病情加重，影响更大",
+                        failKo: "실패! 병이 악화되어 더 큰 영향을 받았습니다"
+                    },
+                    {
+                        textCn: "B. 去医院看病",
+                        textKo: "B. 병원에 가서 진료",
+                        successProbability: 0.9,
+                        impact: { happiness: 5, health: 25, study: -5, money: -25 },
+                        impactOnFail: { happiness: 0, health: 15, study: -5, money: -30 },
+                        successCn: "成功！很快康复，可以继续学习",
+                        successKo: "성공! 빠르게 회복되어 학업을 계속할 수 있습니다",
+                        failCn: "花了不少钱，但身体恢复了",
+                        failKo: "돈을 많이 썼지만 건강은 회복되었습니다"
+                    }
+                ]
+            },
+            {
+                id: 8,
+                titleCn: "小组作业",
+                titleKo: "팀 프로젝트",
+                descriptionCn: "小组作业中，有的组员不负责任。你可以自己多做点，或者和教授反映。",
+                descriptionKo: "팀 프로젝트에서 책임감 없는 팀원이 있습니다. 직접 더 많이 하거나 교수님께 말씀드릴 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 自己承担大部分工作",
+                        textKo: "A. 대부분의 작업을 혼자 담당",
+                        successProbability: 0.65,
+                        impact: { happiness: -15, health: -10, study: 25, money: 0 },
+                        impactOnFail: { happiness: -25, health: -20, study: 10, money: 0 },
+                        successCn: "成功！获得好成绩，但很累",
+                        successKo: "성공! 좋은 성적을 받았지만 매우 피곤합니다",
+                        failCn: "失败！付出很多但效果不好",
+                        failKo: "실패! 많이 노력했지만 결과가 좋지 않습니다"
+                    },
+                    {
+                        textCn: "B. 和教授反映情况",
+                        textKo: "B. 교수님께 상황 보고",
+                        successProbability: 0.7,
+                        impact: { happiness: 10, health: 5, study: 20, money: 0 },
+                        impactOnFail: { happiness: -10, health: 0, study: 5, money: 0 },
+                        successCn: "成功！教授理解并重新分配任务",
+                        successKo: "성공! 교수님이 이해하고 업무를 재분배했습니다",
+                        failCn: "组员不高兴，气氛尴尬",
+                        failKo: "팀원들이 불만스럽고 분위기가 어색합니다"
+                    }
+                ]
+            },
+            {
+                id: 9,
+                titleCn: "假期计划",
+                titleKo: "방학 계획",
+                descriptionCn: "假期快到了。你可以回国见家人，或者留在韩国打工赚钱。",
+                descriptionKo: "방학이 다가옵니다. 귀국해서 가족을 만나거나 한국에 남아 돈을 벌 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 回国见家人",
+                        textKo: "A. 귀국해서 가족 만나기",
+                        successProbability: 0.8,
+                        impact: { happiness: 30, health: 10, study: 0, money: -40 },
+                        impactOnFail: { happiness: 20, health: 5, study: 0, money: -50 },
+                        successCn: "成功！和家人团聚很开心",
+                        successKo: "성공! 가족과 재회하여 매우 행복합니다",
+                        failCn: "见到家人很开心，但花钱太多",
+                        failKo: "가족을 만나 행복하지만 돈을 너무 많이 썼습니다"
+                    },
+                    {
+                        textCn: "B. 留在韩国打工",
+                        textKo: "B. 한국에 남아서 알바",
+                        successProbability: 0.75,
+                        impact: { happiness: -10, health: -5, study: 5, money: 40 },
+                        impactOnFail: { happiness: -20, health: -10, study: 0, money: 30 },
+                        successCn: "成功！赚了不少钱，减轻经济压力",
+                        successKo: "성공! 돈을 많이 벌어 경제적 부담이 줄었습니다",
+                        failCn: "赚了钱但很想家",
+                        failKo: "돈은 벌었지만 가족이 그립습니다"
+                    }
+                ]
+            },
+            {
+                id: 10,
+                titleCn: "期末考试",
+                titleKo: "기말고사",
+                descriptionCn: "期末考试决定这学期的成绩。你可以孤注一掷熬夜冲刺，或者尽力而为保持健康。",
+                descriptionKo: "기말고사가 이번 학기 성적을 결정합니다. 밤을 새워 마지막 스퍼트를 하거나, 최선을 다하되 건강을 유지할 수 있습니다.",
+                options: [
+                    {
+                        textCn: "A. 连续几天不睡觉冲刺",
+                        textKo: "A. 며칠 밤을 새워 마지막 스퍼트",
+                        successProbability: 0.5,
+                        impact: { happiness: -20, health: -30, study: 30, money: 0 },
+                        impactOnFail: { happiness: -30, health: -40, study: 10, money: 0 },
+                        successCn: "成功！取得好成绩，但身体透支",
+                        successKo: "성공! 좋은 성적을 받았지만 건강이 크게 나빠졌습니다",
+                        failCn: "失败！身体垮了，成绩也不理想",
+                        failKo: "실패! 건강이 무너지고 성적도 좋지 않습니다"
+                    },
+                    {
+                        textCn: "B. 尽力准备，但保证休息",
+                        textKo: "B. 최선을 다하되 충분히 휴식",
+                        successProbability: 0.75,
+                        impact: { happiness: 15, health: 10, study: 25, money: 0 },
+                        impactOnFail: { happiness: 5, health: 5, study: 15, money: 0 },
+                        successCn: "成功！成绩好，身体也健康",
+                        successKo: "성공! 성적도 좋고 건강도 유지됩니다",
+                        failCn: "成绩还可以，身体状态不错",
+                        failKo: "성적은 괜찮고 건강 상태도 좋습니다"
+                    }
+                ]
+            }
+        ];
+
+        // ============================================
+        // 게임 상태 변수
+        // ============================================
+        let playerNameValue = '';
+        let currentRound = 0;
+        let totalRounds = 10;
+        
+        // 네 가지 지표 (-100 ~ +100)
+        let happiness = 0;
+        let health = 0;
+        let study = 0;
+        let money = 0;
+
+        // ============================================
+        // 통계학 관련 변수 (Statistics Variables)
+        // 이 부분이 통계학(기대값, 성공률, 위험 선택 비율)을 계산하는 부분
+        // ============================================
+        let trials = 0;              // 전체 시도 횟수
+        let successes = 0;           // 성공 횟수
+        let expectedSuccess = 0;     // 이론적 기대 성공 횟수 E(X) = Σ p_i
+        let highRiskChoices = 0;     // 고위험(p >= 0.6) 선택 횟수
+
+        // ============================================
+        // 게임 시작
+        // ============================================
+        function startGame() {
+            const nameInput = document.getElementById('playerName');
+            playerNameValue = nameInput.value.trim();
+            
+            if (!playerNameValue) {
+                alert('请输入您的昵称 / 닉네임을 입력해주세요');
+                return;
+            }
+
+            // 초기화
+            currentRound = 0;
+            happiness = 0;
+            health = 0;
+            study = 0;
+            money = 0;
+            trials = 0;
+            successes = 0;
+            expectedSuccess = 0;
+            highRiskChoices = 0;
+
+            // 화면 전환
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            // 순위표 로드
+            loadLeaderboard();
+            
+            // 첫 라운드 시작
+            showScenario();
+        }
+
+        // ============================================
+        // 상황 표시
+        // ============================================
+        function showScenario() {
+            if (currentRound >= totalRounds) {
+                endGame();
+                return;
+            }
+
+            const scenario = scenarios[currentRound];
+            
+            // 진행 상황 업데이트
+            const progress = ((currentRound + 1) / totalRounds) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressBar').textContent = `${currentRound + 1} / ${totalRounds}`;
+
+            // 제목
+            document.getElementById('scenarioTitle').innerHTML = 
+                `${scenario.titleCn} / ${scenario.titleKo}`;
+
+            // 설명
+            document.getElementById('scenarioDesc').innerHTML = 
+                `<div style="margin-bottom: 10px;">${scenario.descriptionCn}</div>
+                 <div>${scenario.descriptionKo}</div>`;
+
+            // 선택지 생성
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+
+            scenario.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-choice';
+                btn.innerHTML = `
+                    <div style="font-size: 1.1em; margin-bottom: 8px;">${option.textCn}</div>
+                    <div style="font-size: 1.1em; margin-bottom: 8px;">${option.textKo}</div>
+                    <div class="choice-info">成功率 / 성공률: ${(option.successProbability * 100).toFixed(0)}%</div>
+                `;
+                btn.onclick = () => makeChoice(index);
+                choicesDiv.appendChild(btn);
+            });
+
+            // 결과 박스 초기화
+            document.getElementById('resultBox').innerHTML = '';
+            document.getElementById('nextBtn').classList.add('hidden');
+        }
+
+        // ============================================
+        // 선택 처리 (확률적 성공/실패 판정)
+        // ============================================
+        function makeChoice(optionIndex) {
+            const scenario = scenarios[currentRound];
+            const option = scenario.options[optionIndex];
+
+            // 선택지 비활성화
+            const buttons = document.querySelectorAll('.btn-choice');
+            buttons.forEach(btn => btn.disabled = true);
+
+            // ============================================
+            // 통계 데이터 수집 (Statistics Data Collection)
+            // ============================================
+            trials++;  // 시도 횟수 증가
+            expectedSuccess += option.successProbability;  // 기대값 누적
+            
+            // 고위험 선택 판정 (위험도 0.6 이상)
+            if (option.successProbability >= 0.6) {
+                highRiskChoices++;
+            }
+
+            // ============================================
+            // 확률적 성공/실패 판정 (Math.random() 사용)
+            // ============================================
+            const isSuccess = Math.random() < option.successProbability;
+            
+            if (isSuccess) {
+                successes++;  // 성공 횟수 증가
+            }
+
+            // 지표 변화 적용
+            const impact = isSuccess ? option.impact : option.impactOnFail;
+            happiness += impact.happiness;
+            health += impact.health;
+            study += impact.study;
+            money += impact.money;
+
+            // 지표 범위 제한 (-100 ~ +100)
+            happiness = Math.max(-100, Math.min(100, happiness));
+            health = Math.max(-100, Math.min(100, health));
+            study = Math.max(-100, Math.min(100, study));
+            money = Math.max(-100, Math.min(100, money));
+
+            // UI 업데이트
+            updateStats();
+
+            // 결과 표시
+            const resultBox = document.getElementById('resultBox');
+            const resultClass = isSuccess ? 'result-success' : 'result-fail';
+            const resultTextCn = isSuccess ? option.successCn : option.failCn;
+            const resultTextKo = isSuccess ? option.successKo : option.failKo;
+            
+            resultBox.innerHTML = `
+                <div class="result-box ${resultClass}">
+                    <h3 style="margin-bottom: 10px;">${isSuccess ? '✅ 成功！/ 성공!' : '❌ 失败 / 실패'}</h3>
+                    <div style="margin-bottom: 5px;">${resultTextCn}</div>
+                    <div>${resultTextKo}</div>
+                </div>
+            `;
+
+            // 다음 버튼 표시
+            document.getElementById('nextBtn').classList.remove('hidden');
+        }
+
+        // ============================================
+        // 다음 라운드로
+        // ============================================
+        function nextRound() {
+            currentRound++;
+            showScenario();
+        }
+
+        // ============================================
+        // 지표 UI 업데이트
+        // ============================================
+        function updateStats() {
+            // 값 표시
+            document.getElementById('happinessValue').textContent = happiness;
+            document.getElementById('healthValue').textContent = health;
+            document.getElementById('studyValue').textContent = study;
+            document.getElementById('moneyValue').textContent = money;
+
+            // 바 업데이트 (0 = 50%, -100 = 0%, +100 = 100%)
+            document.getElementById('happinessBar').style.width = ((happiness + 100) / 2) + '%';
+            document.getElementById('healthBar').style.width = ((health + 100) / 2) + '%';
+            document.getElementById('studyBar').style.width = ((study + 100) / 2) + '%';
+            document.getElementById('moneyBar').style.width = ((money + 100) / 2) + '%';
+        }
+
+        // ============================================
+        // 게임 종료 및 최종 점수 계산
+        // ============================================
+        function endGame() {
+            // ============================================
+            // 최종 점수 계산 (가중합)
+            // finalScore = 0.3 * happiness + 0.3 * health + 0.25 * study + 0.15 * money
+            // ============================================
+            const finalScore = (0.3 * happiness + 0.3 * health + 0.25 * study + 0.15 * money).toFixed(1);
+
+            // ============================================
+            // 통계 계산 (Statistics Calculation)
+            // 이 부분이 통계학 요소를 최종 계산하는 부분
+            // ============================================
+            const actualSuccessRate = trials > 0 ? (successes / trials * 100).toFixed(1) : 0;
+            const highRiskRate = trials > 0 ? (highRiskChoices / trials * 100).toFixed(1) : 0;
+
+            // 화면 전환
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            // 결과 표시
+            document.getElementById('finalScoreDisplay').textContent = finalScore;
+            document.getElementById('successCount').textContent = successes;
+            document.getElementById('trialCount').textContent = trials;
+            document.getElementById('expectedValue').textContent = expectedSuccess.toFixed(2);
+            document.getElementById('actualRate').textContent = actualSuccessRate + '%';
+            document.getElementById('highRiskRate').textContent = highRiskRate + '%';
+
+            // 최종 상태 표시
+            document.getElementById('finalHappiness').textContent = happiness;
+            document.getElementById('finalHealth').textContent = health;
+            document.getElementById('finalStudy').textContent = study;
+            document.getElementById('finalMoney').textContent = money;
+
+            // ============================================
+            // Firebase에 점수 저장
+            // ============================================
+            saveScore(finalScore, actualSuccessRate, highRiskRate);
+        }
+
+        // ============================================
+        // Firebase에 점수 저장
+        // ============================================
+        function saveScore(finalScore, actualSuccessRate, highRiskRate) {
+            const scoreData = {
+                name: playerNameValue,
+                finalScore: parseFloat(finalScore),
+                happiness: happiness,
+                health: health,
+                study: study,
+                money: money,
+                successes: successes,
+                trials: trials,
+                expectedSuccess: parseFloat(expectedSuccess.toFixed(2)),
+                highRiskRatio: parseFloat(highRiskRate),
+                createdAt: Date.now()
+            };
+
+            // Firebase Realtime Database에 저장
+            database.ref('survivalStats/scores').push(scoreData)
+                .then(() => {
+                    console.log('점수가 성공적으로 저장되었습니다 / Score saved successfully');
+                    loadLeaderboard();  // 순위표 새로고침
+                })
+                .catch((error) => {
+                    console.error('점수 저장 실패 / Error saving score:', error);
+                });
+        }
+
+        // ============================================
+        // 순위표 로드
+        // ============================================
+        function loadLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            
+            // Firebase에서 상위 10개 데이터 가져오기 (finalScore 기준 내림차순)
+            database.ref('survivalStats/scores')
+                .orderByChild('finalScore')
+                .limitToLast(10)
+                .once('value')
+                .then((snapshot) => {
+                    const scores = [];
+                    snapshot.forEach((child) => {
+                        scores.push(child.val());
+                    });
+                    
+                    // 내림차순 정렬
+                    scores.sort((a, b) => b.finalScore - a.finalScore);
+                    
+                    // 테이블 생성
+                    if (scores.length === 0) {
+                        leaderboardBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">暂无数据 / 데이터 없음</td></tr>';
+                        return;
+                    }
+                    
+                    leaderboardBody.innerHTML = '';
+                    scores.forEach((score, index) => {
+                        const row = document.createElement('tr');
+                        const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                        row.innerHTML = `
+                            <td class="${rankClass}">${index + 1}</td>
+                            <td>${score.name}</td>
+                            <td class="${rankClass}">${score.finalScore.toFixed(1)}</td>
+                        `;
+                        leaderboardBody.appendChild(row);
+                    });
+                })
+                .catch((error) => {
+                    console.error('순위표 로드 실패 / Error loading leaderboard:', error);
+                    leaderboardBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">加载失败 / 로딩 실패</td></tr>';
+                });
+        }
+
+        // ============================================
+        // 게임 재시작
+        // ============================================
+        function restartGame() {
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('playerName').value = '';
+        }
+
+        // ============================================
+        // 페이지 로드 시 순위표 로드
+        // ============================================
+        window.onload = function() {
+            // 초기 순위표는 로그인 후에 로드됨
+        };
+    </script>
+</body>
+</html>
